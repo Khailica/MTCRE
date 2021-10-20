@@ -1,3 +1,8 @@
+# oct/20/2021 08:30:38 by RouterOS 6.48.5
+# software id = 
+#
+#
+#
 /interface bridge
 add name=bridge-Switch
 /interface ethernet
@@ -14,3 +19,23 @@ add bridge=bridge-Switch interface=ether4
 add address=5.5.5.0/24 interface=bridge-Switch network=5.5.5.0
 /system identity
 set name=Switch
+/system script
+add dont-require-permissions=no name=BackUp owner=admin policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon source=":log info \"Executing of backup script started\";\r\
+    \n:local sysname [/system identity get name];\r\
+    \n:local sysver [/system package get system version];\r\
+    \n/ip dns cache flush;\r\
+    \n:delay 2;\r\
+    \n:log info \"DNS cache flushed\";\r\
+    \n:foreach i in=[/file find] do={:if ([:typeof [:find [/file get \$i name] \"\$sysname-backup-\"]]!=\"nil\") do={/file remove \$i}};\r\
+    \n:delay 2;\r\
+    \n:log info \"Last backup and export files deleted\";\r\
+    \n\r\
+    \n:local backupfile (\"\$sysname-backup-\" . [:pick [/system clock get date] 7 11] . [:pick [/system clock get date] 0 3] . [:pick [/system clock get date] 4 6] . \".backup\");\r\
+    \n/system backup save name=\$backupfile;\r\
+    \n:delay 5;\r\
+    \n:log info \"Backup file created\";\r\
+    \n:local exportfile (\"\$sysname-backup-\" . [:pick [/system clock get date] 7 11] . [:pick [/system clock get date] 0 3] . [:pick [/system clock get date] 4 6] . \".rsc\");\r\
+    \n/export file=\$exportfile;\r\
+    \n:delay 5;\r\
+    \n:log info \"Export file created\";\r\
+    \n:local files {\$backupfile;\$exportfile};"
