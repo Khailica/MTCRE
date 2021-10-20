@@ -1,4 +1,4 @@
-# oct/20/2021 08:30:38 by RouterOS 6.48.5
+# oct/20/2021 18:58:49 by RouterOS 6.48.5
 # software id = 
 #
 #
@@ -15,8 +15,6 @@ add bridge=bridge-Switch interface=ether1
 add bridge=bridge-Switch interface=ether2
 add bridge=bridge-Switch interface=ether3
 add bridge=bridge-Switch interface=ether4
-/ip address
-add address=5.5.5.0/24 interface=bridge-Switch network=5.5.5.0
 /system identity
 set name=Switch
 /system script

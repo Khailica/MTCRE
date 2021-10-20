@@ -1,4 +1,4 @@
-# oct/20/2021 07:58:53 by RouterOS 6.48.5
+# oct/20/2021 17:58:12 by RouterOS 6.48.5
 # software id = 
 #
 #
@@ -19,19 +19,18 @@ set [ find default=yes ] supplicant-identity=MikroTik
 /ip address
 add address=1.1.1.1/24 interface=ether1-clockwise network=1.1.1.0
 add address=4.4.4.1/24 interface=ether3-anticlockwise network=4.4.4.0
+add address=5.5.5.1/24 interface=ether2-diagonal network=5.5.5.0
 /ip firewall mangle
-add action=mark-routing chain=prerouting in-interface=ether1-clockwise new-routing-mark=backup-route passthrough=yes
+add action=mark-routing chain=prerouting disabled=yes in-interface=ether1-clockwise new-routing-mark=backup-route passthrough=yes
 /ip firewall nat
 add action=src-nat chain=srcnat out-interface=ether1-clockwise src-address=10.10.10.0/24 to-addresses=1.1.1.1
 add action=src-nat chain=srcnat out-interface=ether2-diagonal src-address=10.10.10.0/24 to-addresses=5.5.5.1
 add action=src-nat chain=srcnat out-interface=ether3-anticlockwise src-address=10.10.10.0/24 to-addresses=4.4.4.1
-/ip route
-add distance=1 dst-address=2.2.2.0/24 gateway=4.4.4.2 routing-mark=backup-route
-add distance=1 dst-address=3.3.3.0/24 gateway=4.4.4.2 routing-mark=backup-route
-add distance=1 dst-address=2.2.2.0/24 gateway=1.1.1.2
-add distance=2 dst-address=2.2.2.0/24 gateway=4.4.4.2
-add distance=1 dst-address=3.3.3.0/24 gateway=1.1.1.2
-add distance=2 dst-address=3.3.3.0/24 gateway=4.4.4.2
+/routing ospf network
+add area=backbone network=1.1.1.0/24
+add area=backbone network=4.4.4.0/24
+add area=backbone network=5.5.5.0/24
+add area=backbone network=10.10.10.0/24
 /system identity
 set name=R1
 /system script

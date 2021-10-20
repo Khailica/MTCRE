@@ -1,4 +1,4 @@
-# oct/20/2021 08:29:04 by RouterOS 6.48.5
+# oct/20/2021 17:26:43 by RouterOS 6.48.5
 # software id = 
 #
 #
@@ -19,20 +19,26 @@ set [ find default=yes ] supplicant-identity=MikroTik
 /ip address
 add address=2.2.2.2/24 interface=ether3-anticlockwise network=2.2.2.0
 add address=3.3.3.2/24 interface=ether1-clockwise network=3.3.3.0
+add address=5.5.5.3/24 interface=ether2-diagonal network=5.5.5.0
 /ip firewall mangle
-add action=mark-routing chain=prerouting in-interface=ether1-clockwise new-routing-mark=backup-route passthrough=yes
+add action=mark-routing chain=prerouting disabled=yes in-interface=ether1-clockwise new-routing-mark=backup-route passthrough=yes
 /ip firewall nat
 add action=src-nat chain=srcnat out-interface=ether1-clockwise src-address=30.30.30.0/24 to-addresses=3.3.3.2
 add action=src-nat chain=srcnat out-interface=ether2-diagonal src-address=30.30.30.0/24 to-addresses=5.5.5.3
 add action=src-nat chain=srcnat out-interface=ether3-anticlockwise src-address=30.30.30.0/24 to-addresses=2.2.2.2
 /ip route
-add distance=1 dst-address=1.1.1.0/24 gateway=2.2.2.1 routing-mark=backup-route
-add distance=1 dst-address=4.4.4.0/24 gateway=2.2.2.1 routing-mark=backup-route
-add distance=1 dst-address=1.1.1.0/24 gateway=3.3.3.1
-add distance=2 dst-address=1.1.1.0/24 gateway=2.2.2.1
-add distance=1 dst-address=3.3.3.0/24 gateway=2.2.2.1
-add distance=1 dst-address=4.4.4.0/24 gateway=3.3.3.1
-add distance=2 dst-address=4.4.4.0/24 gateway=2.2.2.1
+add disabled=yes distance=1 dst-address=1.1.1.0/24 gateway=2.2.2.1 routing-mark=backup-route
+add disabled=yes distance=1 dst-address=4.4.4.0/24 gateway=2.2.2.1 routing-mark=backup-route
+add disabled=yes distance=1 dst-address=1.1.1.0/24 gateway=3.3.3.1
+add disabled=yes distance=2 dst-address=1.1.1.0/24 gateway=2.2.2.1
+add disabled=yes distance=1 dst-address=3.3.3.0/24 gateway=2.2.2.1
+add disabled=yes distance=1 dst-address=4.4.4.0/24 gateway=3.3.3.1
+add disabled=yes distance=2 dst-address=4.4.4.0/24 gateway=2.2.2.1
+/routing ospf network
+add area=backbone network=3.3.3.0/24
+add area=backbone network=2.2.2.0/24
+add area=backbone network=30.30.30.0/24
+add area=backbone network=5.5.5.0/24
 /system identity
 set name=R3
 /system script
