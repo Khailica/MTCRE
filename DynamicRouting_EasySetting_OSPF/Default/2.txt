@@ -1,4 +1,4 @@
-# oct/20/2021 17:35:56 by RouterOS 6.48.5
+# oct/21/2021 08:46:35 by RouterOS 6.48.5
 # software id = 
 #
 #
@@ -20,19 +20,16 @@ set [ find default=yes ] supplicant-identity=MikroTik
 add address=1.1.1.2/24 interface=ether1-anticlockwise network=1.1.1.0
 add address=2.2.2.1/24 interface=ether3-clockwise network=2.2.2.0
 add address=5.5.5.2/24 interface=ether2-diagonal network=5.5.5.0
-/ip firewall mangle
-add action=mark-routing chain=prerouting disabled=yes in-interface=ether3-clockwise new-routing-mark=backup-route passthrough=yes
+add address=20.20.20.1/24 interface=ether4-LAN network=20.20.20.0
 /ip firewall nat
 add action=src-nat chain=srcnat out-interface=ether1-anticlockwise src-address=20.20.20.0/24 to-addresses=1.1.1.2
 add action=src-nat chain=srcnat out-interface=ether2-diagonal src-address=20.20.20.0/24 to-addresses=5.5.5.2
 add action=src-nat chain=srcnat out-interface=ether3-clockwise src-address=20.20.20.0/24 to-addresses=2.2.2.1
-/ip route
-add disabled=yes distance=1 dst-address=3.3.3.0/24 gateway=1.1.1.1 routing-mark=backup-route
-add disabled=yes distance=1 dst-address=4.4.4.0/24 gateway=1.1.1.1 routing-mark=backup-route
-add disabled=yes distance=1 dst-address=3.3.3.0/24 gateway=2.2.2.2
-add disabled=yes distance=2 dst-address=3.3.3.0/24 gateway=1.1.1.1
-add disabled=yes distance=1 dst-address=4.4.4.0/24 gateway=2.2.2.2
-add disabled=yes distance=2 dst-address=4.4.4.0/24 gateway=1.1.1.1
+/routing ospf interface
+add authentication=md5 authentication-key=12345 interface=ether1-anticlockwise network-type=broadcast
+add authentication=md5 authentication-key=12345 interface=ether2-diagonal network-type=broadcast
+add authentication=md5 authentication-key=12345 interface=ether3-clockwise network-type=broadcast
+add interface=ether4-LAN network-type=broadcast passive=yes
 /routing ospf network
 add area=backbone network=1.1.1.0/24
 add area=backbone network=2.2.2.0/24
