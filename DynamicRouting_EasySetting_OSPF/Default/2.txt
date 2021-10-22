@@ -1,8 +1,10 @@
-# oct/21/2021 08:46:35 by RouterOS 6.48.5
+# oct/22/2021 13:11:08 by RouterOS 6.48.5
 # software id = 
 #
 #
 #
+/interface bridge
+add name=br-loopback
 /interface ethernet
 set [ find default-name=ether1 ] disable-running-check=no name=ether1-anticlockwise
 set [ find default-name=ether2 ] disable-running-check=no name=ether2-diagonal
@@ -16,11 +18,14 @@ set [ find default-name=ether9 ] disable-running-check=no name=ether9-INTERNET
 set [ find default-name=ether10 ] disable-running-check=no name=ether10-management
 /interface wireless security-profiles
 set [ find default=yes ] supplicant-identity=MikroTik
+/routing ospf instance
+set [ find default=yes ] router-id=172.25.2.2
 /ip address
 add address=1.1.1.2/24 interface=ether1-anticlockwise network=1.1.1.0
 add address=2.2.2.1/24 interface=ether3-clockwise network=2.2.2.0
 add address=5.5.5.2/24 interface=ether2-diagonal network=5.5.5.0
 add address=20.20.20.1/24 interface=ether4-LAN network=20.20.20.0
+add address=172.25.2.2 interface=br-loopback network=172.25.2.2
 /ip firewall nat
 add action=src-nat chain=srcnat out-interface=ether1-anticlockwise src-address=20.20.20.0/24 to-addresses=1.1.1.2
 add action=src-nat chain=srcnat out-interface=ether2-diagonal src-address=20.20.20.0/24 to-addresses=5.5.5.2
@@ -35,6 +40,7 @@ add area=backbone network=1.1.1.0/24
 add area=backbone network=2.2.2.0/24
 add area=backbone network=20.20.20.0/24
 add area=backbone network=5.5.5.0/24
+add area=backbone network=172.25.0.0/16
 /system identity
 set name=R2
 /system script
