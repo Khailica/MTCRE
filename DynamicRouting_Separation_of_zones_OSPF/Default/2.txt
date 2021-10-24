@@ -1,0 +1,17 @@
+# oct/23/2021 15:35:46 by RouterOS 6.48.5
+# software id = 
+#
+#
+#
+/interface ethernet
+set [ find default-name=ether10 ] name=ether10-management
+/interface wireless security-profiles
+set [ find default=yes ] supplicant-identity=MikroTik
+/ip address
+add address=2.2.2.2/24 interface=ether1 network=2.2.2.0
+add address=3.3.3.1/24 interface=ether2 network=3.3.3.0
+/routing ospf network
+add area=backbone network=2.2.2.0/24
+add area=backbone network=3.3.3.0/24
+/system identity
+set name=R2
