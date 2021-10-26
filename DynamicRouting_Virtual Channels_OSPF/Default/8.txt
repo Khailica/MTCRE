@@ -1,0 +1,2 @@
+sudo ifconfig eth0 7.7.7.2 netmask 255.255.255.0
+sudo route add default gw 7.7.7.1
