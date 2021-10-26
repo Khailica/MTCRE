@@ -8,6 +8,5 @@
 
 Виртуальные каналы
 Суммаризация маршрутов
-
-![DynamicRouting. Separation of zones OSPF:](DynamicRouting_Virtual Channels_OSPF.png)
+![DynamicRouting. Virtual Channels:](DynamicRouting_VirtualChannels_OSPF.png)
 
