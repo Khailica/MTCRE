@@ -1,0 +1,39 @@
+# oct/27/2021 08:08:09 by RouterOS 6.48.5
+# software id = 
+#
+#
+#
+/interface bridge
+add name=bridge-loopback
+/interface ethernet
+set [ find default-name=ether1 ] name=ether1-WAN1
+set [ find default-name=ether2 ] name=ether2-WAN2
+set [ find default-name=ether3 ] name=ether3-WAN3
+set [ find default-name=ether4 ] name=ether4-LAN
+set [ find default-name=ether10 ] name=ether10-management
+/interface wireless security-profiles
+set [ find default=yes ] supplicant-identity=MikroTik
+/routing ospf instance
+set [ find default=yes ] router-id=10.10.10.10
+/ip address
+add address=1.1.1.1/24 interface=ether1-WAN1 network=1.1.1.0
+add address=2.2.2.1/24 interface=ether2-WAN2 network=2.2.2.0
+add address=3.3.3.0/24 interface=ether3-WAN3 network=3.3.3.0
+add address=10.10.10.1/24 interface=ether4-LAN network=10.10.10.0
+add address=10.10.10.10 interface=bridge-loopback network=10.10.10.10
+/ip firewall nat
+add action=src-nat chain=srcnat comment="NAT WAN1" out-interface=ether1-WAN1 src-address=10.10.10.0/24 to-addresses=1.1.1.1
+add action=src-nat chain=srcnat comment="NAT WAN2" out-interface=ether2-WAN2 src-address=10.10.10.0/24 to-addresses=2.2.2.2
+add action=src-nat chain=srcnat comment="NAT WAN3" out-interface=ether3-WAN3 src-address=10.10.10.0/24 to-addresses=3.3.3.3
+/routing ospf interface
+add interface=ether4-LAN network-type=broadcast passive=yes
+add interface=ether1-WAN1 network-type=broadcast
+add interface=ether2-WAN2 network-type=broadcast
+add interface=ether3-WAN3 network-type=broadcast
+/routing ospf network
+add area=backbone network=10.10.10.0/24
+add area=backbone network=1.1.1.0/24
+add area=backbone network=2.2.2.0/24
+add area=backbone network=3.3.3.0/24
+/system identity
+set name=R1
