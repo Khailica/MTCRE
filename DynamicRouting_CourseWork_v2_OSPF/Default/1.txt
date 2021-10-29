@@ -1,0 +1,83 @@
+# oct/29/2021 05:41:39 by RouterOS 6.48.5
+# software id = 
+#
+#
+#
+/interface bridge
+add name=bridge-ospf
+/interface gre
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=1.1.1.1 name=gre-tunnel-R2-WAN1 remote-address=4.4.4.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=2.2.2.1 name=gre-tunnel-R2-WAN2 remote-address=4.4.4.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=3.3.3.1 name=gre-tunnel-R2-WAN3 remote-address=4.4.4.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=1.1.1.1 name=gre-tunnel-R3-WAN1 remote-address=5.5.5.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=2.2.2.1 name=gre-tunnel-R3-WAN2 remote-address=5.5.5.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=3.3.3.1 name=gre-tunnel-R3-WAN3 remote-address=5.5.5.1
+/interface wireless security-profiles
+set [ find default=yes ] supplicant-identity=MikroTik
+/routing ospf instance
+set [ find default=yes ] router-id=172.25.1.1
+/ip address
+add address=1.1.1.1/24 interface=ether1 network=1.1.1.0
+add address=2.2.2.1/24 interface=ether2 network=2.2.2.0
+add address=3.3.3.1/24 interface=ether3 network=3.3.3.0
+add address=10.10.10.1/24 interface=ether4 network=10.10.10.0
+add address=192.168.1.1 interface=gre-tunnel-R2-WAN1 network=192.168.1.2
+add address=192.168.1.3 interface=gre-tunnel-R2-WAN2 network=192.168.1.4
+add address=192.168.1.5 interface=gre-tunnel-R2-WAN3 network=192.168.1.6
+add address=192.168.1.7 interface=gre-tunnel-R3-WAN1 network=192.168.1.8
+add address=192.168.1.9 interface=gre-tunnel-R3-WAN2 network=192.168.1.10
+add address=192.168.1.11 interface=gre-tunnel-R3-WAN3 network=192.168.1.12
+add address=172.25.1.1 interface=bridge-ospf network=172.25.1.1
+/ip firewall mangle
+add action=accept chain=prerouting dst-address=1.1.1.0/24 in-interface=ether4
+add action=accept chain=prerouting dst-address=2.2.2.0/24 in-interface=ether4
+add action=accept chain=prerouting dst-address=3.3.3.0/24 in-interface=ether4
+add action=mark-connection chain=prerouting connection-mark=no-mark in-interface=ether1 new-connection-mark=ISP1
+add action=mark-connection chain=prerouting connection-mark=no-mark in-interface=ether2 new-connection-mark=ISP2
+add action=mark-connection chain=prerouting connection-mark=no-mark in-interface=ether3 new-connection-mark=ISP3
+add action=mark-connection chain=prerouting connection-mark=no-mark dst-address-type=!local in-interface=ether4 new-connection-mark=ISP1 per-connection-classifier=both-addresses:3/0
+add action=mark-connection chain=prerouting connection-mark=no-mark dst-address-type=!local in-interface=ether4 new-connection-mark=ISP1 per-connection-classifier=both-addresses:3/1
+add action=mark-connection chain=prerouting connection-mark=no-mark dst-address-type=!local in-interface=ether4 new-connection-mark=ISP2 per-connection-classifier=both-addresses:3/2
+add action=mark-routing chain=output connection-mark=ISP1 new-routing-mark=ISP1-route
+add action=mark-routing chain=output connection-mark=ISP2 new-routing-mark=ISP2-route
+add action=mark-routing chain=output connection-mark=ISP3 new-routing-mark=ISP3-route
+add action=mark-routing chain=prerouting connection-mark=ISP1 in-interface=ether4 new-routing-mark=ISP1-route
+add action=mark-routing chain=prerouting connection-mark=ISP2 in-interface=ether4 new-routing-mark=ISP2-route
+/ip firewall nat
+add action=src-nat chain=srcnat comment="WAN1 NAT" out-interface=ether1 src-address=10.10.10.0/24 to-addresses=1.1.1.1
+add action=src-nat chain=srcnat comment="WAN2 NAT" out-interface=ether2 src-address=10.10.10.0/24 to-addresses=2.2.2.1
+add action=src-nat chain=srcnat comment="WAN3 NAT" out-interface=ether3 src-address=10.10.10.0/24 to-addresses=3.3.3.1
+/ip route
+add check-gateway=ping comment="Default Route WAN1" distance=1 gateway=77.88.8.1 routing-mark=ISP1-route
+add check-gateway=ping comment="Default Route WAN2" distance=1 gateway=77.88.8.2 routing-mark=ISP2-route
+add comment="Default Route WAN1 (Backup)" distance=1 gateway=77.88.8.1
+add comment="Default Route WAN2 (Backup)" distance=2 gateway=77.88.8.2
+add comment="Default Route (Backup)" distance=3 gateway=77.88.8.3
+add distance=120 dst-address=20.20.20.0/24 type=blackhole
+add distance=120 dst-address=30.30.30.0/24 type=blackhole
+add distance=1 dst-address=77.88.8.1/32 gateway=1.1.1.2 scope=10
+add distance=1 dst-address=77.88.8.2/32 gateway=2.2.2.2 scope=10
+add distance=1 dst-address=77.88.8.3/32 gateway=3.3.3.2 scope=10
+/ip route rule
+add action=lookup-only-in-table dst-address=20.20.20.0/24 src-address=10.10.10.0/24 table=main
+add action=lookup-only-in-table dst-address=30.30.30.0/24 src-address=10.10.10.0/24 table=main
+/routing ospf interface
+add interface=bridge-ospf network-type=broadcast passive=yes
+add interface=ether4 network-type=broadcast passive=yes
+add authentication=md5 authentication-key=Pass66word! cost=11 interface=gre-tunnel-R2-WAN1 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! interface=gre-tunnel-R2-WAN3 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! interface=gre-tunnel-R3-WAN3 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! cost=20 interface=gre-tunnel-R3-WAN1 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! cost=12 interface=gre-tunnel-R2-WAN2 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! cost=30 interface=gre-tunnel-R3-WAN2 network-type=point-to-point use-bfd=yes
+/routing ospf network
+add area=backbone network=10.10.10.0/24
+add area=backbone network=192.168.1.2/32
+add area=backbone network=192.168.1.4/32
+add area=backbone network=192.168.1.6/32
+add area=backbone network=192.168.1.8/32
+add area=backbone network=192.168.1.10/32
+add area=backbone network=192.168.1.12/32
+add area=backbone network=172.25.1.1/32
+/system identity
+set name=K8R1

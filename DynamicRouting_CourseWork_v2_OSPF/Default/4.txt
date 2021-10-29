@@ -1,0 +1,33 @@
+# oct/29/2021 04:01:36 by RouterOS 6.48.5
+# software id = 
+#
+#
+#
+/interface list
+add name=Internet-clients
+/interface wireless security-profiles
+set [ find default=yes ] supplicant-identity=MikroTik
+/ip address
+add address=1.1.1.2/24 interface=ether1 network=1.1.1.0
+add address=2.2.2.2/24 interface=ether2 network=2.2.2.0
+add address=3.3.3.2/24 interface=ether3 network=3.3.3.0
+add address=4.4.4.2/24 interface=ether4 network=4.4.4.0
+add address=5.5.5.2/24 interface=ether5 network=5.5.5.0
+/ip dhcp-client
+add disabled=no interface=ether9
+/ip firewall address-list
+add address=1.1.1.0/24 list=clients
+add address=2.2.2.0/24 list=clients
+add address=3.3.3.0/24 list=clients
+add address=4.4.4.0/24 list=clients
+add address=5.5.5.0/24 list=clients
+add address=10.10.10.0/24 list=clients
+add address=20.20.20.0/24 list=clients
+add address=30.30.30.0/24 list=clients
+/ip firewall nat
+add action=masquerade chain=srcnat dst-address-list=!clients out-interface=ether9 src-address-list=!clients
+/ip route
+add distance=120 dst-address=10.10.10.0/24 type=blackhole
+add distance=120 dst-address=20.20.20.0/24 type=blackhole
+/system identity
+set name=K8Provider

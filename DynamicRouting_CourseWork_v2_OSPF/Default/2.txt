@@ -1,0 +1,59 @@
+/interface bridge
+add name=bridge-ospf
+
+/interface gre
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=\
+    4.4.4.1 name=gre-tunnel-R1-WAN1 remote-address=1.1.1.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=\
+    4.4.4.1 name=gre-tunnel-R1-WAN2 remote-address=2.2.2.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=\
+    4.4.4.1 name=gre-tunnel-R1-WAN3 remote-address=3.3.3.1
+add allow-fast-path=no ipsec-secret=Pass66word! keepalive=5s,5 local-address=\
+    4.4.4.1 name=gre-tunnel-R3 remote-address=5.5.5.1
+
+/interface wireless security-profiles
+set [ find default=yes ] supplicant-identity=MikroTik
+
+/routing ospf instance
+set [ find default=yes ] router-id=172.25.2.2
+
+/ip address
+add address=20.20.20.1/24 interface=ether2 network=20.20.20.0
+add address=4.4.4.1/24 interface=ether1 network=4.4.4.0
+add address=192.168.1.2 interface=gre-tunnel-R1-WAN1 network=192.168.1.1
+add address=192.168.1.4 interface=gre-tunnel-R1-WAN2 network=192.168.1.3
+add address=192.168.1.6 interface=gre-tunnel-R1-WAN3 network=192.168.1.5
+add address=172.25.2.2 interface=bridge-ospf network=172.25.2.2
+add address=192.168.1.13 interface=gre-tunnel-R3 network=192.168.1.14
+
+/ip firewall nat
+add action=src-nat chain=srcnat out-interface=ether1 src-address=\
+    20.20.20.0/24 to-addresses=4.4.4.1
+
+/ip route
+add distance=1 gateway=4.4.4.2
+add distance=120 dst-address=10.10.10.0/24 type=blackhole
+add distance=120 dst-address=30.30.30.0/24 type=blackhole
+
+/routing ospf interface
+add interface=bridge-ospf network-type=broadcast passive=yes
+add interface=ether2 network-type=broadcast passive=yes
+add authentication=md5 authentication-key=Pass66word! cost=11 interface=\
+    gre-tunnel-R1-WAN1 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! interface=\
+    gre-tunnel-R1-WAN3 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! cost=12 interface=\
+    gre-tunnel-R1-WAN2 network-type=point-to-point use-bfd=yes
+add authentication=md5 authentication-key=Pass66word! interface=gre-tunnel-R3 \
+    network-type=point-to-point use-bfd=yes
+
+/routing ospf network
+add area=backbone network=20.20.20.0/24
+add area=backbone network=192.168.1.1/32
+add area=backbone network=192.168.1.3/32
+add area=backbone network=192.168.1.5/32
+add area=backbone network=172.25.2.2/32
+add area=backbone network=192.168.1.14/32
+
+/system identity
+set name=K8R2
