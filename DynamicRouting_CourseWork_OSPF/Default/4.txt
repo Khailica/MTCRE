@@ -1,8 +1,3 @@
-# oct/28/2021 11:57:59 by RouterOS 6.48.5
-# software id = 
-#
-#
-#
 /interface bridge
 add name=bridge-loopback
 /interface ethernet
