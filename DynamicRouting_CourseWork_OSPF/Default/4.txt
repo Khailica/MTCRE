@@ -1,4 +1,4 @@
-# oct/27/2021 08:06:54 by RouterOS 6.48.5
+# oct/28/2021 11:57:59 by RouterOS 6.48.5
 # software id = 
 #
 #
@@ -16,20 +16,20 @@ set [ find default-name=ether10 ] name=ether10-management
 /interface wireless security-profiles
 set [ find default=yes ] supplicant-identity=MikroTik
 /queue simple
-add dst=ether4-NET4WAN4 max-limit=20M/20M name=queue-NET4WAN4_20Mb target=""
-add dst=ether5-NET5WAN5 max-limit=20M/20M name=queue-NET5WAN5_20Mb target=""
-add dst=ether2-NET2WAN2 max-limit=20M/20M name=queue-NET2WAN2_20Mb target=""
-add dst=ether3-NET3WAN3 max-limit=20M/20M name=queue-NET3WAN3_20Mb target=""
-add dst=ether1-NET1WAN1 max-limit=40M/40M name=queue-NET1WAN1_40Mb target=""
+add dst=ether9-INTERNET max-limit=20M/20M name=queue-NET4WAN4_20Mb target=ether4-NET4WAN4
+add dst=ether9-INTERNET max-limit=20M/20M name=queue-NET5WAN5_20Mb target=ether5-NET5WAN5
+add dst=ether9-INTERNET max-limit=20M/20M name=queue-NET2WAN2_20Mb target=ether2-NET2WAN2
+add dst=ether9-INTERNET max-limit=20M/20M name=queue-NET3WAN3_20Mb target=ether3-NET3WAN3
+add dst=ether9-INTERNET max-limit=40M/40M name=queue-NET1WAN1_40Mb target=ether1-NET1WAN1
 /routing ospf instance
-set [ find default=yes ] distribute-default=if-installed-as-type-1 router-id=40.40.40.40
+set [ find default=yes ] distribute-default=if-installed-as-type-1 router-id=172.25.4.4
 /ip address
 add address=1.1.1.2/24 interface=ether1-NET1WAN1 network=1.1.1.0
 add address=2.2.2.2/24 interface=ether2-NET2WAN2 network=2.2.2.0
 add address=3.3.3.2/24 interface=ether3-NET3WAN3 network=3.3.3.0
 add address=4.4.4.2/24 interface=ether4-NET4WAN4 network=4.4.4.0
 add address=5.5.5.2/24 interface=ether5-NET5WAN5 network=5.5.5.0
-add address=40.40.40.40 interface=bridge-loopback network=40.40.40.40
+add address=172.25.4.4 interface=bridge-loopback network=172.25.4.4
 /ip dhcp-client
 add disabled=no interface=ether9-INTERNET
 /ip firewall nat
@@ -39,11 +39,11 @@ add action=masquerade chain=srcnat comment="NAT for NET3WAN3" out-interface=ethe
 add action=masquerade chain=srcnat comment="NAT for NET4WAN4" out-interface=ether9-INTERNET src-address=4.4.4.0/24
 add action=masquerade chain=srcnat comment="NAT for NET5WAN5" out-interface=ether9-INTERNET src-address=5.5.5.0/24
 /routing ospf interface
-add interface=ether1-NET1WAN1 network-type=broadcast
-add interface=ether2-NET2WAN2 network-type=broadcast
-add interface=ether3-NET3WAN3 network-type=broadcast
-add interface=ether4-NET4WAN4 network-type=broadcast
-add interface=ether5-NET5WAN5 network-type=broadcast
+add authentication=md5 authentication-key=12345 interface=ether1-NET1WAN1 network-type=broadcast use-bfd=yes
+add authentication=md5 authentication-key=12345 interface=ether2-NET2WAN2 network-type=broadcast use-bfd=yes
+add authentication=md5 authentication-key=12345 interface=ether3-NET3WAN3 network-type=broadcast use-bfd=yes
+add authentication=md5 authentication-key=12345 interface=ether4-NET4WAN4 network-type=broadcast use-bfd=yes
+add authentication=md5 authentication-key=12345 interface=ether5-NET5WAN5 network-type=broadcast use-bfd=yes
 /routing ospf network
 add area=backbone network=5.5.5.0/24
 add area=backbone network=4.4.4.0/24

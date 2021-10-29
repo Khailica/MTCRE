@@ -1,4 +1,4 @@
-# oct/27/2021 08:07:59 by RouterOS 6.48.5
+# oct/28/2021 12:00:43 by RouterOS 6.48.5
 # software id = 
 #
 #
@@ -9,21 +9,41 @@ add name=bridge-loopback
 set [ find default-name=ether1 ] name=ether1-WAN4
 set [ find default-name=ether2 ] name=ether2-LAN
 set [ find default-name=ether10 ] name=ether10-management
+/interface gre
+add allow-fast-path=no ipsec-secret=12345 local-address=4.4.4.1 name=gre-tunnel1_HQ-R1 remote-address=1.1.1.1
+add allow-fast-path=no ipsec-secret=12345 local-address=4.4.4.1 name=gre-tunnel2_HQ-R1 remote-address=2.2.2.1
+add allow-fast-path=no ipsec-secret=12345 local-address=4.4.4.1 name=gre-tunnel3_HQ-R1 remote-address=3.3.3.1
+add allow-fast-path=no ipsec-secret=12345 local-address=4.4.4.1 name=gre-tunnel_filial2-R3 remote-address=5.5.5.1
 /interface wireless security-profiles
 set [ find default=yes ] supplicant-identity=MikroTik
+/routing ospf area
+add area-id=0.0.1.0 name=area-vpn
 /routing ospf instance
-set [ find default=yes ] router-id=20.20.20.20
+set [ find default=yes ] router-id=172.25.2.2
 /ip address
 add address=4.4.4.1/24 interface=ether1-WAN4 network=4.4.4.0
 add address=20.20.20.1/24 interface=ether2-LAN network=20.20.20.0
-add address=20.20.20.20 interface=bridge-loopback network=20.20.20.20
+add address=172.25.2.2 interface=bridge-loopback network=172.25.2.2
+add address=192.168.2.1 interface=gre-tunnel1_HQ-R1 network=192.168.1.1
+add address=192.168.2.1 interface=gre-tunnel_filial2-R3 network=192.168.3.1
+add address=192.168.2.1 interface=gre-tunnel2_HQ-R1 network=192.168.1.2
+add address=192.168.2.1 interface=gre-tunnel3_HQ-R1 network=192.168.1.3
 /ip firewall nat
 add action=src-nat chain=srcnat comment="NAT WAN4" out-interface=ether1-WAN4 src-address=20.20.20.0/24 to-addresses=4.4.4.1
+/ip route
+add distance=1 dst-address=10.10.10.0/24 gateway=192.168.1.2,192.168.1.3,192.168.1.1
+add comment="route stub" distance=2 dst-address=10.10.10.0/24 type=blackhole
+add distance=1 dst-address=30.30.30.0/24 gateway=192.168.3.1
+add comment="route stub" distance=110 dst-address=30.30.30.0/24 type=blackhole
 /routing ospf interface
 add interface=ether2-LAN network-type=broadcast passive=yes
-add interface=ether1-WAN4 network-type=broadcast
+add authentication=md5 authentication-key=12345 interface=ether1-WAN4 network-type=broadcast use-bfd=yes
 /routing ospf network
 add area=backbone network=4.4.4.0/24
 add area=backbone network=20.20.20.0/24
+add area=area-vpn network=192.168.1.1/32
+add area=area-vpn network=192.168.3.1/32
+add area=area-vpn network=192.168.1.2/32
+add area=area-vpn network=192.168.1.3/32
 /system identity
 set name=R2

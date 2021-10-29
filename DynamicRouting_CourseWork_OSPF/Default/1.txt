@@ -1,4 +1,4 @@
-# oct/27/2021 09:11:08 by RouterOS 6.48.5
+# oct/28/2021 12:00:52 by RouterOS 6.48.5
 # software id = 
 #
 #
@@ -11,20 +11,40 @@ set [ find default-name=ether2 ] name=ether2-WAN2
 set [ find default-name=ether3 ] name=ether3-WAN3
 set [ find default-name=ether4 ] name=ether4-LAN
 set [ find default-name=ether10 ] name=ether10-management
+/interface gre
+add allow-fast-path=no ipsec-secret=12345 local-address=1.1.1.1 name=gre-tunnel1_filial1-R2 remote-address=4.4.4.1
+add allow-fast-path=no ipsec-secret=12345 local-address=1.1.1.1 name=gre-tunnel1_filial2-R3 remote-address=5.5.5.1
+add allow-fast-path=no ipsec-secret=12345 local-address=2.2.2.1 name=gre-tunnel2_filial1-R2 remote-address=4.4.4.1
+add allow-fast-path=no ipsec-secret=12345 local-address=2.2.2.1 name=gre-tunnel2_filial2-R3 remote-address=5.5.5.1
+add allow-fast-path=no ipsec-secret=12345 local-address=3.3.3.1 name=gre-tunnel3_filial1-R2 remote-address=4.4.4.1
+add allow-fast-path=no ipsec-secret=12345 local-address=3.3.3.1 name=gre-tunnel3_filial2-R3 remote-address=5.5.5.1
 /interface wireless security-profiles
 set [ find default=yes ] supplicant-identity=MikroTik
+/routing ospf area
+add area-id=0.0.1.0 name=area-vpn
 /routing ospf instance
-set [ find default=yes ] router-id=10.10.10.10
+set [ find default=yes ] router-id=172.25.1.1
 /ip address
 add address=1.1.1.1/24 interface=ether1-WAN1 network=1.1.1.0
 add address=2.2.2.1/24 interface=ether2-WAN2 network=2.2.2.0
 add address=3.3.3.1/24 interface=ether3-WAN3 network=3.3.3.0
 add address=10.10.10.1/24 interface=ether4-LAN network=10.10.10.0
-add address=10.10.10.10 interface=bridge-loopback network=10.10.10.10
+add address=172.25.1.1 interface=bridge-loopback network=172.25.1.1
+add address=192.168.1.1 interface=gre-tunnel1_filial1-R2 network=192.168.2.1
+add address=192.168.1.1 interface=gre-tunnel1_filial2-R3 network=192.168.3.1
+add address=192.168.1.2 interface=gre-tunnel2_filial1-R2 network=192.168.2.1
+add address=192.168.1.3 interface=gre-tunnel3_filial1-R2 network=192.168.2.1
+add address=192.168.1.2 interface=gre-tunnel2_filial2-R3 network=192.168.3.1
+add address=192.168.1.3 interface=gre-tunnel3_filial2-R3 network=192.168.3.1
+/ip firewall address-list
+add address=1.1.1.0/24 list=Organization
+add address=2.2.2.0/24 list=Organization
+add address=3.3.3.0/24 list=Organization
+add address=10.10.10.0/24 list=Organization
+add address=20.20.20.0/24 list=Organization
+add address=30.30.30.0/24 list=Organization
 /ip firewall mangle
-add action=accept chain=prerouting dst-address=1.1.1.0/24 in-interface=ether4-LAN
-add action=accept chain=prerouting dst-address=2.2.2.0/24 in-interface=ether4-LAN
-add action=accept chain=prerouting dst-address=3.3.3.0/24 in-interface=ether4-LAN
+add action=accept chain=prerouting dst-address-list=Organization in-interface=ether4-LAN
 add action=mark-connection chain=prerouting connection-mark=no-mark in-interface=ether1-WAN1 new-connection-mark=ISP1 passthrough=yes
 add action=mark-connection chain=prerouting connection-mark=no-mark in-interface=ether2-WAN2 new-connection-mark=ISP2 passthrough=yes
 add action=mark-connection chain=prerouting connection-mark=no-mark dst-address-type=!local in-interface=ether4-LAN new-connection-mark=ISP1 passthrough=yes per-connection-classifier=both-addresses:2/0
@@ -43,18 +63,26 @@ add check-gateway=ping comment="Default Route WAN2" distance=1 gateway=77.88.8.2
 add check-gateway=ping comment="Default Route WAN1 (Backup)" distance=1 gateway=77.88.8.1
 add check-gateway=ping comment="Default Route WAN2 (Backup)" distance=2 gateway=77.88.8.2
 add check-gateway=ping comment="Default Route (Backup)" distance=3 gateway=77.88.8.3
-add check-gateway=ping distance=1 dst-address=77.88.8.1/32 gateway=1.1.1.2 scope=10
-add check-gateway=ping distance=1 dst-address=77.88.8.2/32 gateway=2.2.2.2 scope=10
-add check-gateway=ping distance=1 dst-address=77.88.8.3/32 gateway=3.3.3.2 scope=10
+add check-gateway=ping distance=1 dst-address=20.20.20.0/24 gateway=192.168.2.1
+add comment="rout stub" distance=2 dst-address=20.20.20.0/24 type=blackhole
+add distance=1 dst-address=30.30.30.0/24 gateway=192.168.3.1
+add comment="rout stub" distance=2 dst-address=30.30.30.0/24 type=blackhole
+add check-gateway=ping comment="link to R1" distance=1 dst-address=77.88.8.1/32 gateway=1.1.1.2 scope=10
+add check-gateway=ping comment="link to R1" distance=1 dst-address=77.88.8.2/32 gateway=2.2.2.2 scope=10
+add check-gateway=ping comment="link to R1" distance=1 dst-address=77.88.8.3/32 gateway=3.3.3.2 scope=10
 /routing ospf interface
 add interface=ether4-LAN network-type=broadcast passive=yes
-add interface=ether1-WAN1 network-type=broadcast
-add interface=ether2-WAN2 network-type=broadcast
-add interface=ether3-WAN3 network-type=broadcast
+add authentication=md5 authentication-key=12345 cost=9 interface=ether1-WAN1 network-type=broadcast use-bfd=yes
+add authentication=md5 authentication-key=12345 interface=ether2-WAN2 network-type=broadcast use-bfd=yes
+add authentication=md5 authentication-key=12345 cost=8 interface=ether3-WAN3 network-type=broadcast use-bfd=yes
 /routing ospf network
 add area=backbone network=10.10.10.0/24
 add area=backbone network=1.1.1.0/24
 add area=backbone network=2.2.2.0/24
 add area=backbone network=3.3.3.0/24
+add area=area-vpn network=192.168.2.1/32
+add area=area-vpn network=192.168.3.1/32
+/routing ospf virtual-link
+add neighbor-id=0.0.0.0
 /system identity
 set name=R1
