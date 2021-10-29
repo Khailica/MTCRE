@@ -10,3 +10,5 @@
 Суммаризация маршрутов
 ![DynamicRouting. Virtual Channels:](DynamicRouting_VirtualChannels_OSPF.png)
 
+Курсовая работа
+![DynamicRouting_CourseWork_OSPF:](Course_Work.png)
